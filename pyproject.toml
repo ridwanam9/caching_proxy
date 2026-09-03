@@ -1,0 +1,8 @@
+[project]
+name = "caching-proxy"
+version = "0.1.0"
+description = "A simple caching proxy server"
+requires-python = ">=3.10"
+
+[project.scripts]
+caching-proxy = "app.cli:main"
