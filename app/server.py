@@ -1,5 +1,6 @@
 import httpx
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -13,4 +14,7 @@ async def proxy(path: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(target_url)
 
-    return response.json()
+    return JSONResponse(
+        content=response.json(),
+        status_code=response.status_code
+    )
