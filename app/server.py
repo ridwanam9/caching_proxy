@@ -1,15 +1,16 @@
+import httpx
 from fastapi import FastAPI
-# import httpx
 
 app = FastAPI()
 
+origin = None
 
-@app.get("/")
-def home():
-    return {"message": "Caching proxy is running"}
 
 @app.api_route("/{path:path}", methods=["GET"])
 async def proxy(path: str):
-    print(f"Requested path: {path}")
+    target_url = f"{origin}/{path}"
 
-    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(target_url)
+
+    return response.json()
