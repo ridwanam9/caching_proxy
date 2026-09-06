@@ -1,5 +1,5 @@
 import argparse
-
+import uvicorn
 
 def main():
     parser = argparse.ArgumentParser(
@@ -33,6 +33,12 @@ def main():
     
     if args.port is None or args.origin is None:
         parser.error("--port and --origin are required")
+
+    uvicorn.run(
+        "app.server:app",
+        host="127.0.0.1",
+        port=args.port
+    )
     
     
     print(f"Port: {args.port}")
