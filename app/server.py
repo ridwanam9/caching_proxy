@@ -1,6 +1,8 @@
 import httpx
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
 
 app = FastAPI()
 
@@ -10,8 +12,14 @@ cache = {}
 
 
 @app.api_route("/{path:path}", methods=["GET"])
-async def proxy(path: str):
-    cache_key = path
+async def proxy(path: str, request: Request):
+
+    cache_key = str(request.url.path)
+
+    if request.url.query:
+        cache_key += f"?{request.url.query}"
+
+    print("Cache key:", cache_key)
 
     if cache_key in cache:
         print("CACHE HIT")
@@ -28,7 +36,10 @@ async def proxy(path: str):
     target_url = f"{origin}/{path}"
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(target_url)
+        response = await client.get(
+            target_url,
+            params=request.query_params
+        )
 
     cache[cache_key] = response.json()
 
