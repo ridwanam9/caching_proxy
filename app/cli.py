@@ -1,6 +1,7 @@
 import argparse
 import uvicorn
 import app.server
+import httpx
 
 def main():
     parser = argparse.ArgumentParser(
@@ -29,13 +30,16 @@ def main():
     args = parser.parse_args()
 
     if args.clear_cache:
-        app.server.cache.clear()
-        print("Cache cleared")
+        response = httpx.delete("http://127.0.0.1:3000/clear-cache")
+        if response.status_code == 200:
+            print("Cache cleared")
+        else:
+            print("Failed to clear cache")
         return
     
     if args.port is None or args.origin is None:
         parser.error("--port and --origin are required")
-        
+
     app.server.origin = args.origin
 
     uvicorn.run(
