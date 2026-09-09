@@ -41,7 +41,13 @@ async def proxy(path: str, request: Request):
             params=request.query_params
         )
 
-    cache[cache_key] = response.json()
+    cache[cache_key] = {
+        "status_code": response.status_code,
+        "headers": dict(response.headers),
+        "body": response.json()
+    }
+
+    print(cache[cache_key])
 
     return JSONResponse(
         content=response.json(),
