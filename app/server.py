@@ -11,6 +11,12 @@ origin = None
 cache = {}
 
 
+@app.delete("/clear-cache")
+async def clear_cache():
+    cache.clear()
+
+    return {"message": "Cache cleared"}
+
 @app.api_route("/{path:path}", methods=["GET"])
 async def proxy(path: str, request: Request):
 
