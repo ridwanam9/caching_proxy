@@ -27,8 +27,11 @@ async def proxy(path: str, request: Request):
         cached_response = cache[cache_key]
 
         return JSONResponse(
-            content=cached_response,
-            headers={"X-Cache": "HIT"}
+            content=cached_response["body"],
+            status_code=cached_response["status_code"],
+            headers={
+                "X-Cache": "HIT"
+            }
         )
 
     print("CACHE MISS")
