@@ -1,7 +1,10 @@
 import argparse
-import uvicorn
-import app.server
+
 import httpx
+import uvicorn
+
+import app.server
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -11,34 +14,42 @@ def main():
     parser.add_argument(
         "--port",
         type=int,
-        # required=True,
+        default=3000,
         help="Port where the proxy server will run"
     )
 
     parser.add_argument(
         "--origin",
-        # required=True,
         help="Origin server URL"
     )
+
     parser.add_argument(
         "--clear-cache",
         action="store_true",
         help="Clear the cache"
     )
 
-
     args = parser.parse_args()
 
     if args.clear_cache:
-        response = httpx.delete("http://127.0.0.1:3000/clear-cache")
-        if response.status_code == 200:
-            print("Cache cleared")
-        else:
-            print("Failed to clear cache")
+        url = f"http://127.0.0.1:{args.port}/clear-cache"
+
+        try:
+            response = httpx.delete(url)
+
+            if response.status_code == 200:
+                print("Cache cleared")
+            else:
+                print("Failed to clear cache")
+
+        except httpx.ConnectError:
+            print("Unable to connect to caching proxy.")
+            print("Make sure the server is running.")
+
         return
     
-    if args.port is None or args.origin is None:
-        parser.error("--port and --origin are required")
+    if args.origin is None:
+        parser.error("--origin is required")
 
     app.server.origin = args.origin
 
@@ -47,10 +58,7 @@ def main():
         host="127.0.0.1",
         port=args.port
     )
-    
-    
-    print(f"Port: {args.port}")
-    print(f"Origin: {args.origin}")
+
 
 if __name__ == "__main__":
     main()
