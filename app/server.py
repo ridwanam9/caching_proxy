@@ -10,6 +10,21 @@ origin = None
 
 cache = {}
 
+def get_response_headers(headers):
+    excluded_headers = {
+        "content-encoding",
+        "content-length",
+        "transfer-encoding",
+        "connection",
+        "date",
+        "server",
+    }
+
+    return {
+        key: value
+        for key, value in headers.items()
+        if key.lower() not in excluded_headers
+    }
 
 @app.delete("/clear-cache")
 async def clear_cache():
@@ -36,6 +51,7 @@ async def proxy(path: str, request: Request):
             content=cached_response["body"],
             status_code=cached_response["status_code"],
             headers={
+                **get_response_headers(cached_response["headers"]),
                 "X-Cache": "HIT"
             }
         )
@@ -61,5 +77,8 @@ async def proxy(path: str, request: Request):
     return JSONResponse(
         content=response.json(),
         status_code=response.status_code,
-        headers={"X-Cache": "MISS"}
+        headers={
+            **get_response_headers(response.headers),
+            "X-Cache": "MISS"
+        }
     )
