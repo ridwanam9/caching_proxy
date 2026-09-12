@@ -125,3 +125,30 @@ def test_clear_cache():
     assert mock_get.call_count == 2
 
 
+
+# Status Code & Response Body
+def test_response_status_and_body_are_forwarded():
+    cache.clear()
+    server.origin = "http://test-origin"
+
+    mock_response = Mock()
+    mock_response.status_code = 201
+    mock_response.headers = {
+        "content-type": "application/json"
+    }
+    mock_response.json.return_value = {
+        "message": "Product created"
+    }
+
+    with patch(
+        "httpx.AsyncClient.get",
+        new_callable=AsyncMock,
+        return_value=mock_response
+    ):
+        response = client.get("/products/1")
+
+    assert response.status_code == 201
+    assert response.json() == {
+        "message": "Product created"
+    }
+
