@@ -152,3 +152,29 @@ def test_response_status_and_body_are_forwarded():
         "message": "Product created"
     }
 
+# Response Headers
+def test_response_headers_are_forwarded():
+    cache.clear()
+    server.origin = "http://test-origin"
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.headers = {
+        "content-type": "application/json",
+        "etag": "abc123",
+    }
+    mock_response.json.return_value = {
+        "id": 1
+    }
+
+    with patch(
+        "httpx.AsyncClient.get",
+        new_callable=AsyncMock,
+        return_value=mock_response
+    ):
+        response = client.get("/products/1")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    assert response.headers["etag"] == "abc123"
+    assert response.headers["X-Cache"] == "MISS"
