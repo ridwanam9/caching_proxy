@@ -59,3 +59,30 @@ def test_cache_hit():
     assert first_response.headers["X-Cache"] == "MISS"
     assert second_response.headers["X-Cache"] == "HIT"
     assert mock_get.call_count == 1
+
+
+
+def test_query_parameters_have_different_cache_keys():
+    cache.clear()
+    server.origin = "http://test-origin"
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.headers = {
+        "content-type": "application/json"
+    }
+    mock_response.json.return_value = {
+        "products": []
+    }
+
+    with patch(
+        "httpx.AsyncClient.get",
+        new_callable=AsyncMock,
+        return_value=mock_response
+    ) as mock_get:
+        first_response = client.get("/products?limit=5")
+        second_response = client.get("/products?limit=10")
+
+    assert first_response.headers["X-Cache"] == "MISS"
+    assert second_response.headers["X-Cache"] == "MISS"
+    assert mock_get.call_count == 2
