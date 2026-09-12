@@ -32,3 +32,30 @@ def test_cache_miss():
 
     assert response.status_code == 200
     assert response.headers["X-Cache"] == "MISS"
+
+
+def test_cache_hit():
+    cache.clear()
+    server.origin = "http://test-origin"
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.headers = {
+        "content-type": "application/json"
+    }
+    mock_response.json.return_value = {
+        "id": 1,
+        "title": "Test Product"
+    }
+
+    with patch(
+        "httpx.AsyncClient.get",
+        new_callable=AsyncMock,
+        return_value=mock_response
+    ) as mock_get:
+        first_response = client.get("/products/1")
+        second_response = client.get("/products/1")
+
+    assert first_response.headers["X-Cache"] == "MISS"
+    assert second_response.headers["X-Cache"] == "HIT"
+    assert mock_get.call_count == 1
